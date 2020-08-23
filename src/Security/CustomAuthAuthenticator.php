@@ -96,8 +96,8 @@ class CustomAuthAuthenticator extends AbstractFormLoginAuthenticator implements 
             return new RedirectResponse($targetPath);
         }
 
-        // For example : return new RedirectResponse($this->urlGenerator->generate('some_route'));
-        throw new \Exception('TODO: provide a valid redirect inside '.__FILE__);
+        // 'TODO: provide a valid redirect THIS IS MY COMMENT'
+        return new RedirectResponse($this->urlGenerator->generate('/'));
     }
 
     protected function getLoginUrl()
