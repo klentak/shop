@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello DayController!{% endblock %}
+{% block javascripts %} {{ encore_entry_script_tags('day') }}{% endblock %}
+{% block body %}
+<div class="container">
+ <header class="row border-bottom">
+    <div class="col-lg-6 mt-5">
+        <div class="row">
+            <h1 class="text-secondary">{{ day.date|date("m.d.Y") }}</h1>
+        </div>
+        <div class="row">
+            <h3 class="text-primary">{{ day.date|date("l") }}</h3>
+        </div>
+    </div>
+
+    <div class="col-lg-3 offset-lg-3 mt-5">
+        <div class="row">
+            <h3>{{app.user.username}}</h3>
+        </div>
+         <div class="row mt-4">
+            <h5>{{day.location.name}}</h5>
+        </div>
+    </div>
+ </header>
+ <div class="row">
+    <table id="sold_table" class="table mt-3">
+        <thead>
+            <tr class="table-active">
+                <td><h4 class="text-primary">Produkt</h4></td>
+                <td><h4 class="text-primary">Cena sprzeday</h4></td>
+                <td><h4 class="text-primary">Cena zakupu</h4></td>
+                <td><h4 class="text-primary">Faktura</h4></td>
+                <td><h4 class="text-primary">Promocja</h4></td>
+                <td><h4 class="text-primary">Data</h4></td>
+            </tr>
+        </thead>
+    </table>
+ </div>
+</div>
+
+{% endblock %}

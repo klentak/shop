@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello DayController!{% endblock %}
+
+{% block body %}
+<div class="container">
+
+        <div class="row d-flex justify-content-center mt-5">
+            <div class="col-md-2 d-flex justify-content-center mt-5">
+                <a href="/"><h1>LOGO</h1></a>
+            </div>
+        </div>
+
+{# class="row d-flex justify-content-center" #}
+        <form action="/new_day" method="POST">
+            <div class="form-group row d-flex justify-content-center mt-5">
+                <div class="col-lg-2">
+                    <label class="col-form-label " for="hour_start">Godzina rozpoczęcia</label>
+                    <input type="time" class="form-control" id="hour_start" name="hour_start">
+                </div>
+                <div class="col-lg-2 offset-lg-1">
+                    <label class="col-form-label" for="hour_end">Godzina zakończenia</label>
+                    <input type="time" class="form-control" id="hour_end" name="hour_end" pattern="nn:nn:nn" require>
+                </div> 
+            </div>
+            <div class="row d-flex justify-content-center">
+                <select name="id" class="col-lg-4 form-control mt-5" require>
+                    {% for location in locations %}
+                        <option value="{{ location.id }}" {% if location.open == true %} disabled {% endif %}>{{ location.name }}</option>
+                    {% endfor %}
+                </select>
+                <input type="submit" class="btn btn-danger mt-5 ml-3" value="Otwórz">
+            </div>
+        </form>
+</div>
+
+{% endblock %}

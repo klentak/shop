@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -33,6 +35,23 @@ class User implements UserInterface
      * @ORM\Column(type="string")
      */
     private $password;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Worker::class, mappedBy="User")
+     */
+    private $Worker;
+
+    /**
+     * @ORM\ManyToMany(targetEntity=Day::class, mappedBy="User")
+     */
+    private $days;
+
+    public function __construct()
+    {
+        $this->Days = new ArrayCollection();
+        $this->Worker = new ArrayCollection();
+        $this->days = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -105,5 +124,44 @@ class User implements UserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    /**
+     * @return Collection|Day[]
+     */
+    public function getDays(): Collection
+    {
+        return $this->Days;
+    }
+
+    /**
+     * @return Collection|Worker[]
+     */
+    public function getWorker(): Collection
+    {
+        return $this->Worker;
+    }
+
+    public function addWorker(Worker $worker): self
+    {
+        if (!$this->Worker->contains($worker)) {
+            $this->Worker[] = $worker;
+            $worker->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeWorker(Worker $worker): self
+    {
+        if ($this->Worker->contains($worker)) {
+            $this->Worker->removeElement($worker);
+            // set the owning side to null (unless already changed)
+            if ($worker->getUser() === $this) {
+                $worker->setUser(null);
+            }
+        }
+
+        return $this;
     }
 }
