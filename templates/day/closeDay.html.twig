@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Close day {{ day.date|date("m.d.Y") }}{% endblock %}
+{% block javascripts %}
+<script>
+    window.print();
+</script>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-3">
+            <h3>Podsumowanie {{ day.date|date("m.d.Y") }}</h3> 
+        </div>
+        <div class="col-lg-3 offset-lg-6 float-right text-right">
+            <h3>Obrót: {{ sales }}</h3>
+            <h3>Zysk: {{ profit }}</h3>
+        </div>
+    </div>
+    <h4>{{app.user.username}}: {{worker.HourStart|date("H:m")}} - {{worker.HourEnd|date("H:m")}}</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th><h4 class="text-primary">Produkt</h4></th>
+                <th><h4 class="text-primary">Cena sprzedaży</h4></th>
+                <th><h4 class="text-primary">Cena zakupu</h4></th>
+                <th><h4 class="text-primary">Faktura</h4></th>
+                <th><h4 class="text-primary">Promocja</h4></th>
+            </tr>
+        </thead>
+        <tbody>
+         {%for sold in day.Sold %}
+            <tr>
+                <td>{{sold.Product}}</td>
+                <td>{{sold.Price}}</td>
+                <td>{{sold.PurchasePrice}}</td>
+                <td>{% if sold.Facture == true %} Fv{% else %}X{% endif %}</td>
+                <td>{{sold.Sale}}</td>
+            <tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+{% endblock %}

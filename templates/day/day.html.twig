@@ -1,42 +1,95 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Hello DayController!{% endblock %}
-{% block javascripts %} {{ encore_entry_script_tags('day') }}{% endblock %}
+{% block javascripts %} 
+{{ encore_entry_script_tags('day') }}
+
+{% endblock %}
 {% block body %}
 <div class="container">
- <header class="row border-bottom">
-    <div class="col-lg-6 mt-5">
-        <div class="row">
-            <h1 class="text-secondary">{{ day.date|date("m.d.Y") }}</h1>
+    <header class="row border-bottom">
+        <div class="col-lg-6 mt-5">
+            <div class="row">
+                <h1 class="text-secondary">{{ day.date|date("m.d.Y") }}</h1>
+            </div>
+            <div class="row">
+                <h3 class="text-primary">{{ day.date|date("l") }}</h3>
+            </div>
         </div>
-        <div class="row">
-            <h3 class="text-primary">{{ day.date|date("l") }}</h3>
-        </div>
-    </div>
 
-    <div class="col-lg-3 offset-lg-3 mt-5">
-        <div class="row">
-            <h3>{{app.user.username}}</h3>
+        <div class="col-lg-3 offset-lg-3 mt-5">
+            <div class="row">
+                <h3>{{app.user.username}}</h3>
+            </div>
+            <div class="row mt-4">
+                <h5>{{day.location.name}}</h5>
+            </div>
         </div>
-         <div class="row mt-4">
-            <h5>{{day.location.name}}</h5>
+    </header>
+    
+    <div class="row">
+        <table id="soldTable" class="table mt-3">
+            <thead>
+                <tr class="table-active">
+                    <th><h4 class="text-primary">Produkt</h4></th>
+                    <th><h4 class="text-primary">Cena sprzedaży</h4></th>
+                    <th><h4 class="text-primary">Cena zakupu</h4></th>
+                    <th><h4 class="text-primary">Faktura</h4></th>
+                    <th><h4 class="text-primary">Promocja</h4></th>
+                    <th><h4 class="text-primary">Godzina</h4></th>
+                    <th><h4 class="text-primary">Operacje</h4></th>
+                </tr>
+            </thead>
+            <tbody>  
+            </tbody>
+        </table>
+        <div class="pt-5 pb-5 mt-5 invisible">
+        .
         </div>
     </div>
- </header>
- <div class="row">
-    <table id="sold_table" class="table mt-3">
-        <thead>
-            <tr class="table-active">
-                <td><h4 class="text-primary">Produkt</h4></td>
-                <td><h4 class="text-primary">Cena sprzeday</h4></td>
-                <td><h4 class="text-primary">Cena zakupu</h4></td>
-                <td><h4 class="text-primary">Faktura</h4></td>
-                <td><h4 class="text-primary">Promocja</h4></td>
-                <td><h4 class="text-primary">Data</h4></td>
-            </tr>
-        </thead>
-    </table>
- </div>
 </div>
+ 
+ <div class="fixed-bottom bg-light pt-2" >
+ <div class="container">
+ <form class="form-group" method="post" id="soldForm">
+    <div class="row">
+        <input class="form-control col-lg-3 ml-2" type="text" id="product" name="product" placeholder="Produkt">
+        <input class="form-control col-lg-3 ml-3" type="number" id="price" name="price" placeholder="Cena sprzedazy">
+        <input class="form-control col-lg-3 ml-3" type="number" id="purchase_price" name="purchase_price" placeholder="Cena zakupu">
+        <input class="form-control col-lg-1 ml-3" type="checkbox" id="facture" name="facture" value="true">
+        <input class="form-control col-lg-1 ml-3" type="number" id="sale" name="sale" placeholder="Przecena" value="0">
+    </div>
+    {# <div class="row d-flex justify-content-center">
+        <button class="btn btn-lg btn-danger mt-2" id="submit" value="button" type="button">DODAJ</button>
+    </div> #}
+    <div class="row">
+        <div class="col-lg-2 offset-lg-5 d-flex justify-content-center">
+            <button class="btn btn-lg btn-danger mt-2" id="submit" value="button" type="button">DODAJ</button>
+        </div>
+        <div class="text-danger col-lg-3 offset-lg-2 text-right pr-5 pt-3 invisible" id="loading">
+            <div class="spinner-border" role="status">
+                <span class="sr-only ">Loading...</span>
+            </div>
+        </div>
+    </div>
+</form>
+    <div class="row pt-3 pb-2 border-top">
+        <div class="col-lg-3">
+            <h4>Stan kasy: <b id="cashPosition"></b> zł</h4>
+        </div>
+         <div class="col-lg-2 ">
+            <div class="row">obrót: &nbsp  <b id="sales"></b> zł</div>
+            <div class="row">zysk: &nbsp <b id="profit" class="text-success"></b> zł</div>
+        </div>
+        <div class="text-danger col-lg-2 d-flex justify-content-center ">
+            <a href="/expenses/{{day.id}}/new"><button class="btn btn-warning btn-lg">Koszta: <b>{{ expenses }} </b>zł</button></a>
+        </div>
+        <div class="text-danger col-lg-3 offset-lg-2 text-right">
+            <button id="closeDay" class="btn btn-lg btn-outline-danger">Zamknij dzień</button>
+        </div>
+
+    </div>
+</div>
+
 
 {% endblock %}

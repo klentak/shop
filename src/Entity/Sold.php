@@ -30,7 +30,7 @@ class Sold
     /**
      * @ORM\Column(type="decimal", precision=10, scale=2)
      */
-    private $PurchsePrice;
+    private $PurchasePrice;
 
     /**
      * @ORM\Column(type="boolean")
@@ -82,14 +82,14 @@ class Sold
         return $this;
     }
 
-    public function getPurchsePrice(): ?string
+    public function getPurchasePrice(): ?string
     {
-        return $this->PurchsePrice;
+        return $this->PurchasePrice;
     }
 
-    public function setPurchsePrice(string $PurchsePrice): self
+    public function setPurchasePrice(string $PurchasePrice): self
     {
-        $this->PurchsePrice = $PurchsePrice;
+        $this->PurchasePrice = $PurchasePrice;
 
         return $this;
     }

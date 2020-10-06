@@ -50,6 +50,11 @@ class Day
      */
     private $Worker;
 
+    /**
+     * @ORM\Column(type="decimal", precision=10, scale=2)
+     */
+    private $CashPosition;
+
     public function __construct()
     {
         $this->Workers = new ArrayCollection();
@@ -193,6 +198,18 @@ class Day
                 $worker->setDay(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getCashPosition(): ?string
+    {
+        return $this->CashPosition;
+    }
+
+    public function setCashPosition(string $CashPosition): self
+    {
+        $this->CashPosition = $CashPosition;
 
         return $this;
     }

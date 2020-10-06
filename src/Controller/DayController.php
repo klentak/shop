@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Location;
 use App\Entity\Day;
 use App\Entity\Worker;
+use App\Entity\Sold;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
@@ -14,6 +15,10 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Core\User\User;
 
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
+
+use App\Service\sspService\SSP;
 
 class DayController extends AbstractController
 {
@@ -44,24 +49,35 @@ class DayController extends AbstractController
         $location = $em->getRepository(Location::class)->find($id);
 
         $worker = new Worker();
-        
         $day = new Day();
+
         $user = $this->getUser();
+
         $worker->setUser($user);
-        $worker->setHourStart(new \DateTime($hour_end));
+        $worker->setHourStart(new \DateTime($hour_start));
         $worker->setHourEnd(new \DateTime($hour_end));
         $worker->setMainSeller(true);
+
+        //last expense
+        $lastDay = $em->getRepository(Day::class)->findOneBy(["Location" => $location], ['id' => 'desc']);
+
+        if(empty($lastDay)){
+            $day->setCashPosition(0);
+        }else{
+            $day->setCashPosition($lastDay->getCashPosition());
+        }
         
         $day->setLocation($location);
         $day->addWorker($worker);
         $day->setOpen(true);
         $day->setOpen(true);
+        
 
         $em->persist($day);
         $em->persist($worker);
         $em->flush();
 
-        return $this->redirectToRoute('index');
+        return $this->redirectToRoute('day', ['id' => $day->getId()]);
 
     }
 
@@ -73,28 +89,40 @@ class DayController extends AbstractController
         $em = $this->getDoctrine()->getManager();
         $day = $em->getRepository(Day::class)->find($id);
 
-        if(empty($day)){
+        // check day
+        if(empty($day) or $day->getOpen() == false){
             return $this->redirectToRoute('index');
         }else{
             $worker = $em->getRepository(Worker::class)->findBy([
                 'User' => $this->getUser(),
                 'day' => $day
             ]);
+            // check user
             if(empty($worker)){
                 return $this->redirectToRoute('index');
             }else{
+                // count expenses
+                $expenses = 0;
+                foreach($day->getExpenses()  as $expense){
+                    $expenses += $expense->getWorth();
+                }
                 return $this->render('day/day.html.twig', [
                     'day'=> $day,
+                    'expenses' => $expenses
                 ]);
             }
         }
     }
+
+
+    
     /**
-     * @Route("/open_days", name="opens_day")
+     * @Route("/open_days", name="open_day")
      */
     public function open_days(){
         $em = $this->getDoctrine()->getManager();
 
+        // check if any day is open 
         $query = $em->createQuery(
             'SELECT D.id FROM App\Entity\Worker W
             INNER JOIN W.User U
@@ -111,6 +139,148 @@ class DayController extends AbstractController
         }else{
             return $this->redirectToRoute("day",[
                 'id' => $day_id[0]['id']
+            ]);
+        }
+    }
+
+     /**
+     * @Route("/tableSold", name="tableSold", methods="post")
+     */
+    public function tableSold(Request $request){
+        $post = $request->request;
+        $em = $this->getDoctrine()->getManager();
+        $id = $request->request->get('id');
+
+        $day = $em->getRepository(Day::class)->find($id);
+        $CashPosition = $day->getCashPosition();
+
+        $sold = $em->getRepository(Sold::class)->findBy(['Day' => $day]);
+        $serializer = $this->container->get('serializer');
+
+        $sales = 0;
+        $purchasePrice = 0;
+        foreach($day->getSold()  as $product){
+            $sales += $product->getPrice();
+            $purchasePrice += $product->getPurchasePrice();
+        }
+
+        $sold_json = $serializer->serialize([$sold, $CashPosition, $sales, ($sales-$purchasePrice)], 'json', ['ignored_attributes' => ['Day']]);
+       
+        return new Response($sold_json); 
+    }
+
+    /**
+     * @Route("/day/{id}/saveSold", name="saveSold", methods={"GET", "POST"})
+     */
+    public function saveSold(Request $request, int $id)
+    {
+        $em = $this->getDoctrine()->getManager();
+        $day = $em->getRepository(Day::class)->find($id);
+        $data = $request->request->get('data');
+        if(empty($day)){
+            // ERROR 
+            var_dump("Error");
+        }else{
+            $sold = new Sold();
+            for($i=0; $i<count($data); $i++){
+                switch($data[$i]['name']){
+                    case 'product':
+                        $sold->setProduct($data[$i]['value']);
+                        break;
+                    case 'price':
+                        $sold->setPrice($data[$i]['value']);
+
+                        // update CashPosition
+                        $CashPosition = $day->getCashPosition(); 
+                        $day->setCashPosition($CashPosition + $data[$i]['value']); 
+                        break;
+                    case 'purchase_price':
+                        $sold->setPurchasePrice($data[$i]['value']);
+                        break;
+                    case 'facture':
+                        $sold->setFacture($data[$i]['value']);
+                        break;
+                    case 'sale':
+                        $sold->setSale($data[$i]['value']);
+                        break;
+                }
+            }
+            if($sold->getFacture()==''){
+                $sold->setFacture(false);
+            }
+
+            $sold->setDay($day);
+            $sold->setDate(new \DateTime());
+
+            $em->persist($sold);
+            $em->flush();
+
+            return new JsonResponse('success');
+        }
+    }
+
+    /**
+     * @Route("/day/{id}/sold_delete", name="soldDelete", methods={"DELETE"})
+     */
+    public function delete(Request $request, Sold $sold): Response
+    {
+
+        $entityManager = $this->getDoctrine()->getManager();
+        var_dump($sold->getId());
+        // $entityManager->remove($sold);
+        // $entityManager->flush();
+
+        return $this->redirectToRoute('sold_index');
+    }
+
+    /**
+     * @Route("/day/{id}/edit", name="soldEdit", methods={"GET","POST"})
+     */
+    public function edit(Request $request, Sold $sold): Response
+    {
+        $form = $this->createForm(SoldType::class, $sold);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $this->getDoctrine()->getManager()->flush();
+
+            return $this->redirectToRoute('sold_index');
+        }
+
+        return $this->render('sold/edit.html.twig', [
+            'sold' => $sold,
+            'form' => $form->createView(),
+        ]);
+    }
+
+     /**
+     * @Route("/day/{id}/close", name="close_day")
+     */
+    public function close_day(int $id){
+        $em = $this->getDoctrine()->getManager();
+        $day = $em->getRepository(Day::class)->find($id);
+        $worker = $em->getRepository(Worker::class)->findOneBy(["day" => $day, 'User' => $this->getUser()]);
+      
+        if(empty($day) || empty($worker)){
+            return $this->redirectToRoute('index');
+            // ERROR
+        }else{
+            $sales = 0;
+            $purchasePrice = 0;
+            foreach($day->getSold()  as $sold){
+                $sales += $sold->getPrice();
+                $purchasePrice += $sold->getPurchasePrice();
+            }
+
+            $day->setOpen(false);
+            $day->getLocation()->setOpen(false);
+            $em->flush();
+            
+            return $this->render('day/closeDay.html.twig', [
+                'day'=> $day,
+                'worker' => $worker,
+                'sales' => $sales,
+                'profit' => ($sales - $purchasePrice)
             ]);
         }
     }
