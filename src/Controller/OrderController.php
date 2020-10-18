@@ -38,13 +38,14 @@ class OrderController extends AbstractController
     {
         return $this->render('order/index.html.twig', [
             'orders' => $orderRepository->findBy(['Location' => $location_id]),
+            'location_id' => $location_id,
         ]);
     }
 
     /**
      * @Route("/{location_id}/new", name="order_new", methods={"GET","POST"})
      */
-    public function new(Request $request): Response
+    public function new(Request $request, int $location_id): Response
     {
         $order = new Order();
         $form = $this->createForm(OrderType::class, $order);
@@ -52,10 +53,13 @@ class OrderController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager = $this->getDoctrine()->getManager();
+            $order->setDate(new \DateTime);
+            $location = $entityManager->getRepository(Location::class)->find($location_id);
+            $order->setLocation($location);
             $entityManager->persist($order);
             $entityManager->flush();
 
-            return $this->redirectToRoute('order_index');
+            return $this->redirectToRoute('orders', ["location_id" => $location_id]);
         }
 
         return $this->render('order/new.html.twig', [
@@ -64,15 +68,15 @@ class OrderController extends AbstractController
         ]);
     }
 
-    // /**
-    //  * @Route("/{id}", name="order_show", methods={"GET"})
-    //  */
-    // public function show(Order $order): Response
-    // {
-    //     return $this->render('order/show.html.twig', [
-    //         'order' => $order,
-    //     ]);
-    // }
+    /**
+     * @Route("/show/{id}", name="order_show", methods={"GET"})
+     */
+    public function show(Order $order): Response
+    {
+        return $this->render('order/show.html.twig', [
+            'order' => $order,
+        ]);
+    }
 
     /**
      * @Route("/{id}/edit", name="order_edit", methods={"GET","POST"})

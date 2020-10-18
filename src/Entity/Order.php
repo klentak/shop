@@ -39,6 +39,11 @@ class Order
      */
     private $Location;
 
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $Name;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -88,6 +93,18 @@ class Order
     public function setLocation(?Location $Location): self
     {
         $this->Location = $Location;
+
+        return $this;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->Name;
+    }
+
+    public function setName(string $Name): self
+    {
+        $this->Name = $Name;
 
         return $this;
     }

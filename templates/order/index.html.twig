@@ -34,6 +34,5 @@
         {% endfor %}
         </tbody>
     </table>
-
-    {# <a href="{{ path('order_new') }}">Create new</a> #}
+    <a href="{{ path('order_new', {'location_id': location_id}) }}">Create new</a>
 {% endblock %}
