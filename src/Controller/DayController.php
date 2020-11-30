@@ -18,29 +18,29 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
-use App\Service\sspService\SSP;
-
+/**
+ * @Route("/day")
+ */
 class DayController extends AbstractController
 {
     /**
-     * @Route("/select_day", name="select_day")
+     * @Route("/select", name="select_day")
      */
     public function select_day()
     {
         $em = $this->getDoctrine()->getManager();
         $locations = $em->getRepository(Location::class)->findAll();
 
-        return $this->render('day/newDay.html.twig', [
+        return $this->render('day/selectDay.html.twig', [
             'locations'=> $locations,
         ]);
     }
     
     /**
-     * @Route("/new_day", name="new_day")
+     * @Route("", methods={"POST"})
      */
-    public function new_day(Request $request)
+    public function save_day(Request $request)
     {
-
         $id = $request->request->get('id');
         $hour_start = $request->request->get('hour_start');
         $hour_end = $request->request->get('hour_end');
@@ -66,25 +66,77 @@ class DayController extends AbstractController
         }else{
             $day->setCashPosition($lastDay->getCashPosition());
         }
-        
+
         $day->setLocation($location);
         $day->addWorker($worker);
         $day->setOpen(true);
         $day->setOpen(true);
-        
+
 
         $em->persist($day);
         $em->persist($worker);
         $em->flush();
 
         return $this->redirectToRoute('day', ['id' => $day->getId()]);
-
     }
 
     /**
-     * @Route("/day/{id}", name="day", methods={"GET"})
+     * @Route("/open", name="open_day", methods={"POST"})
      */
-    public function day(Request $request, int $id)
+    public function open_days(){
+        $em = $this->getDoctrine()->getManager();
+
+        // check if any day is open 
+        $query = $em->createQuery(
+            'SELECT D.id FROM App\Entity\Worker W
+            INNER JOIN W.User U
+            INNER JOIN W.day D
+            WHERE D.Date = :date
+            AND W.User = :id'
+        )->setParameter('date', date("Y-m-d"))
+         ->setParameter('id', $this->getUser());
+
+        $day_id = $query->getResult();
+
+        if(empty($day_id)){
+            return $this->redirectToRoute('index');
+        }else{
+            return $this->redirectToRoute("day",[
+                'id' => (int)$day_id[0]['id']
+            ]);
+        }
+    }
+
+     /**
+     * @Route("/tableSold", name="tableSold", methods={"POST"})
+     */
+    public function tableSold(Request $request){
+        $post = $request->request;
+        $em = $this->getDoctrine()->getManager();
+        $id = $request->request->get('id');
+
+        $day = $em->getRepository(Day::class)->find($id);
+        $CashPosition = $day->getCashPosition();
+
+        $sold = $em->getRepository(Sold::class)->findBy(['Day' => $day]);
+        $serializer = $this->container->get('serializer');
+
+        $sales = 0;
+        $purchasePrice = 0;
+        foreach($day->getSold()  as $product){
+            $sales += $product->getPrice();
+            $purchasePrice += $product->getPurchasePrice();
+        }
+
+        $sold_json = $serializer->serialize([$sold, $CashPosition, $sales, ($sales-$purchasePrice)], 'json', ['ignored_attributes' => ['Day']]);
+       
+        return new Response($sold_json); 
+    }
+
+    /**
+     * @Route("/{id}", name="day", methods={"GET"})
+     */
+    public function get_day(int $id)
     {
         $em = $this->getDoctrine()->getManager();
         $day = $em->getRepository(Day::class)->find($id);
@@ -114,63 +166,8 @@ class DayController extends AbstractController
         }
     }
 
-
-    
     /**
-     * @Route("/open_days", name="open_day")
-     */
-    public function open_days(){
-        $em = $this->getDoctrine()->getManager();
-
-        // check if any day is open 
-        $query = $em->createQuery(
-            'SELECT D.id FROM App\Entity\Worker W
-            INNER JOIN W.User U
-            INNER JOIN W.day D
-            WHERE D.Date = :date
-            AND W.User = :id'
-        )->setParameter('date', date("Y-m-d"))
-         ->setParameter('id', $this->getUser());
-
-        $day_id = $query->getResult();
-
-        if(empty($day_id)){
-            return $this->redirectToRoute('index');
-        }else{
-            return $this->redirectToRoute("day",[
-                'id' => $day_id[0]['id']
-            ]);
-        }
-    }
-
-     /**
-     * @Route("/tableSold", name="tableSold", methods="post")
-     */
-    public function tableSold(Request $request){
-        $post = $request->request;
-        $em = $this->getDoctrine()->getManager();
-        $id = $request->request->get('id');
-
-        $day = $em->getRepository(Day::class)->find($id);
-        $CashPosition = $day->getCashPosition();
-
-        $sold = $em->getRepository(Sold::class)->findBy(['Day' => $day]);
-        $serializer = $this->container->get('serializer');
-
-        $sales = 0;
-        $purchasePrice = 0;
-        foreach($day->getSold()  as $product){
-            $sales += $product->getPrice();
-            $purchasePrice += $product->getPurchasePrice();
-        }
-
-        $sold_json = $serializer->serialize([$sold, $CashPosition, $sales, ($sales-$purchasePrice)], 'json', ['ignored_attributes' => ['Day']]);
-       
-        return new Response($sold_json); 
-    }
-
-    /**
-     * @Route("/day/{id}/saveSold", name="saveSold", methods={"GET", "POST"})
+     * @Route("/{id}/sold", methods={"POST"})
      */
     public function saveSold(Request $request, int $id)
     {
@@ -179,7 +176,9 @@ class DayController extends AbstractController
         $data = $request->request->get('data');
         if(empty($day)){
             // ERROR 
-            var_dump("Error");
+            $response = new Response();
+            $response->setStatusCode(406);
+            return $response;
         }else{
             $sold = new Sold();
             for($i=0; $i<count($data); $i++){
@@ -220,9 +219,9 @@ class DayController extends AbstractController
     }
 
     /**
-     * @Route("/day/{id}/sold_delete", name="soldDelete", methods={"DELETE"})
+     * @Route("/{id}/sold", methods={"DELETE"})
      */
-    public function delete(Request $request, Sold $sold): Response
+    public function deleteSold(Request $request, Sold $sold): Response
     {
 
         $entityManager = $this->getDoctrine()->getManager();
@@ -234,9 +233,9 @@ class DayController extends AbstractController
     }
 
     /**
-     * @Route("/day/{id}/edit", name="soldEdit", methods={"GET","POST"})
+     * @Route("/{id}/sold", methods={"PUT"})
      */
-    public function edit(Request $request, Sold $sold): Response
+    public function updateSold(Request $request, Sold $sold): Response
     {
         $form = $this->createForm(SoldType::class, $sold);
         $form->handleRequest($request);
@@ -254,7 +253,7 @@ class DayController extends AbstractController
     }
 
      /**
-     * @Route("/day/{id}/close", name="close_day")
+     * @Route("/{id}/close", name="close_day")
      */
     public function close_day(int $id){
         $em = $this->getDoctrine()->getManager();

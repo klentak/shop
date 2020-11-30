@@ -48,7 +48,7 @@ class tableOperations {
         this.loading(true);
         $.ajax({
             context: this,
-            url: "/tableSold", 
+            url: "/day/tableSold",
             data: {
                 "id": this.day_id
             },
@@ -108,7 +108,7 @@ class tableOperations {
             var td = $("<td></td>").appendTo(tr);
             // var btn_delete = $("<button class='btn btn-danger'>delete</button>");
             var btn_delete = $("<button class='btn btn-danger'>delete</button>");
-            btn_delete.click()
+            btn_delete.click();
             var btn_edit= $("<button class='btn btn-info ml-3'>edit</button>");
             td.append(btn_delete);
             td.append(btn_edit);
@@ -139,7 +139,7 @@ class tableOperations {
             this.loading(true);
             $.ajax({
                 context: this,
-                url: window.location.href+"/saveSold", 
+                url: "/day",
                 data: {
                     "data": data
                 },
