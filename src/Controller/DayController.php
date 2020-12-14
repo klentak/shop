@@ -81,7 +81,7 @@ class DayController extends AbstractController
     }
 
     /**
-     * @Route("/open", name="open_day", methods={"POST"})
+     * @Route("/open", name="open_day", methods={"GET"})
      */
     public function open_days(){
         $em = $this->getDoctrine()->getManager();
