@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Order{% endblock %}
+
+{% block body %}
+   <div class="container">
+        <div class="row d-flex justify-content-center mt-5">
+            <div class="col-md-2 d-flex justify-content-center mt-5">
+                <a href="/"><h1>LOGO</h1></a>
+            </div>
+        </div>
+        <div class="row d-flex justify-content-center">
+            <div class="col-md-2 d-flex justify-content-center">
+                <p>Wybierz lokalizację</p>
+            </div>
+        </div>
+        {% for location in locations %}
+        <div class="row d-flex justify-content-center">
+            <div class="col-lg-3 d-flex justify-content-center mt-5">
+                <a href="/order/{{location.id}}" class="btn btn-lg btn-primary d-block w-100 ">{{ location.name }}</a>
+            </div>
+        </div>
+        {% endfor %}
+   </div>
+{% endblock %}

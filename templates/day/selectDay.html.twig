@@ -12,19 +12,19 @@
         </div>
 
 {# class="row d-flex justify-content-center" #}
-        <form action="/new_day" method="POST">
+        <form action="/day" method="POST">
             <div class="form-group row d-flex justify-content-center mt-5">
                 <div class="col-lg-2">
                     <label class="col-form-label " for="hour_start">Godzina rozpoczęcia</label>
-                    <input type="time" class="form-control" id="hour_start" name="hour_start">
+                    <input type="time" class="form-control" id="hour_start" name="hour_start" required>
                 </div>
                 <div class="col-lg-2 offset-lg-1">
                     <label class="col-form-label" for="hour_end">Godzina zakończenia</label>
-                    <input type="time" class="form-control" id="hour_end" name="hour_end" pattern="nn:nn:nn" require>
+                    <input type="time" class="form-control" id="hour_end" name="hour_end" pattern="nn:nn:nn" required>
                 </div> 
             </div>
             <div class="row d-flex justify-content-center">
-                <select name="id" class="col-lg-4 form-control mt-5" require>
+                <select name="id" class="col-lg-4 form-control mt-5" required>
                     {% for location in locations %}
                         <option value="{{ location.id }}" {% if location.open == true %} disabled {% endif %}>{{ location.name }}</option>
                     {% endfor %}

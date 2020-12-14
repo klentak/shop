@@ -40,9 +40,21 @@ class Location
      */
     private $Open;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Order::class, mappedBy="Location")
+     */
+    private $Orders;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Limit::class, mappedBy="Location")
+     */
+    private $Limits;
+
     public function __construct()
     {
         $this->Days = new ArrayCollection();
+        $this->Orders = new ArrayCollection();
+        $this->Limits = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -113,6 +125,68 @@ class Location
     public function setOpen(bool $Open): self
     {
         $this->Open = $Open;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Order[]
+     */
+    public function getOrders(): Collection
+    {
+        return $this->Orders;
+    }
+
+    public function addOrder(Order $order): self
+    {
+        if (!$this->Orders->contains($order)) {
+            $this->Orders[] = $order;
+            $order->setLocation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOrder(Order $order): self
+    {
+        if ($this->Orders->contains($order)) {
+            $this->Orders->removeElement($order);
+            // set the owning side to null (unless already changed)
+            if ($order->getLocation() === $this) {
+                $order->setLocation(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Limit[]
+     */
+    public function getLimits(): Collection
+    {
+        return $this->Limits;
+    }
+
+    public function addLimit(Limit $limit): self
+    {
+        if (!$this->Limits->contains($limit)) {
+            $this->Limits[] = $limit;
+            $limit->setLocation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLimit(Limit $limit): self
+    {
+        if ($this->Limits->contains($limit)) {
+            $this->Limits->removeElement($limit);
+            // set the owning side to null (unless already changed)
+            if ($limit->getLocation() === $this) {
+                $limit->setLocation(null);
+            }
+        }
 
         return $this;
     }

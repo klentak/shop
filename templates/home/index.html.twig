@@ -3,20 +3,16 @@
 {% block title %}Home{% endblock %}
 
 {% block body %}
+{% include 'navbar.html.twig' %}
 <div class="container">
     <div class="row d-flex justify-content-center mt-5">
         <div class="col-md-2 d-flex justify-content-center mt-5">
-        <h1>LOGO</h1>
+            <a href="/day/select" class="btn btn-outline-danger btn-lg btn-block">Nowy dzień</a>
         </div>
     </div>
     <div class="row d-flex justify-content-center mt-1">
         <div class="col-md-2 d-flex justify-content-center mt-5">
-            <a href="/select_day" class="btn btn-outline-danger btn-lg btn-block">Nowy dzień</a>
-        </div>
-    </div>
-    <div class="row d-flex justify-content-center mt-1">
-        <div class="col-md-2 d-flex justify-content-center mt-5">
-            <a href="/open_days" class="btn btn-outline-primary btn-lg btn-block" >Otwarte dni</a>
+            <a href="/day/open" class="btn btn-outline-primary btn-lg btn-block" >Otwarte dni</a>
         </div>
     </div>
     <div class="row d-flex justify-content-center mt-1">
@@ -30,8 +26,8 @@
         </div>
     </div>
     <div class="row d-flex justify-content-center mt-1">
-        <div class="col-md-3 d-flex justify-content-center mt-5">
-            <button type="button" class="btn btn-outline-primary btn-lg" >Zamówienia w drodze</button>
+        <div class="col-md-2 d-flex justify-content-center mt-5">
+            <a href="/order"class="btn btn-outline-primary btn-lg btn-block" >Zamówienia</a>
         </div>
     </div>
      <div class="row">
