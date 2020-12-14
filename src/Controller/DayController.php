@@ -175,7 +175,7 @@ class DayController extends AbstractController
         $day = $em->getRepository(Day::class)->find($id);
         $data = $request->request->get('data');
         if(empty($day)){
-            // ERROR 
+            // TODO: return error
             $response = new Response();
             $response->setStatusCode(406);
             return $response;
