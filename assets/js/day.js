@@ -135,11 +135,11 @@ class tableOperations {
                 break;
             }
         }
-        if(flag==false){
+        if(flag===false){
             this.loading(true);
             $.ajax({
                 context: this,
-                url: "/day",
+                url: window.location.href+"/sold",
                 data: {
                     "data": data
                 },
